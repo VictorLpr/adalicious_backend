@@ -14,10 +14,17 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const id = req.params.id;
-    const result = await db.query('SELECT * FROM orders WHERE id = $1', [id]);
+    const orderId = req.params.id;
+    const result = await db.query(
+      `SELECT q.quantity, m.title, q.quantity * m.price AS line_price
+        FROM quantities q 
+        JOIN orders o ON o.id = q.order_id
+        JOIN meals m ON q.meal_id = m.id
+        WHERE o.id = $1`,
+      [orderId],
+    );
     if (result.rows[0]) {
-      res.status(200).send(result.rows[0]);
+      res.status(200).send(result.rows);
     } else {
       res.sendStatus(404);
     }
